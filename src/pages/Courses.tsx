@@ -1,28 +1,29 @@
-import React from 'react'
-import { CourseCard } from '../components/CourseCard'
+import React from 'react';
+import { CourseCard } from '../components/CourseCard';
 
 const courses = [
     {
         id: '1',
         title: "Основы бариста",
         description: "Учитесь варить кофе, как профессионал.",
-        imageUrl: "/barista.jpg"
+        imageUrl: "/boris.jpg"
     },
     {
         id: '2',
         title: "Продвинутые техники",
         description: "Различные способы приготовления кофе.",
-        imageUrl: "/tumblr_na9xwrti291qcvimoo1_1280.jpg"
+        imageUrl: "/boris.jpg"
     }
-]
+];
+
 
 export const Courses: React.FC = () => {
     return (
         <div className="container mx-auto p-6">
-            <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center font-brightSunkiss">
                 Наши курсы
             </h1>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="flex flex-col gap-8">
                 {courses.map((course) => (
                     <CourseCard
                         key={course.id}
@@ -34,5 +35,5 @@ export const Courses: React.FC = () => {
                 ))}
             </div>
         </div>
-    )
-}
+    );
+};

@@ -6,7 +6,7 @@ const courses = [
         id: '1',
         title: "Стандарт сервиса",
         description: "Учитесь варить кофе, как профессионал.",
-        imageUrl: "/barista.jpg",
+        imageUrl: "/public/boris.jpg",
         details: "Курс охватывает все аспекты приготовления кофе.",
         lessons: [
             {
