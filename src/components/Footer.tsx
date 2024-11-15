@@ -2,7 +2,7 @@ import React from 'react';
 
 export const Footer: React.FC = () => {
     return (
-        <footer className="bg-gradient-to-t from-[#4E3B31] to-[#F6E7D1] text-gray-800 p-4 font-halmahera">
+        <footer className="bg-[#4E3B31] text-[#F6E7D1] p-4 font-halmahera">
             <div className="container mx-auto flex justify-between items-center">
                 <p>© 2024 Бариста Курсы. Все права защищены.</p>
                 <div className="space-x-6">

@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import cofe from '../assets/images/cofe.jpg'
 
 const courses = [
     {
         id: '1',
         title: "Стандарт сервиса",
         description: "Учитесь варить кофе, как профессионал.",
-        imageUrl: "/public/boris.jpg",
+        imageUrl: `${cofe}`,
         details: "Курс охватывает все аспекты приготовления кофе.",
         lessons: [
             {
@@ -44,7 +45,7 @@ export const CourseDetails: React.FC = () => {
                 <img
                     src={course.imageUrl}
                     alt={course.title}
-                    className="w-full h-64 object-cover"
+                    className="w-full h-96 object-cover"
                 />
                 <div className="p-6">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">{course.title}</h1>

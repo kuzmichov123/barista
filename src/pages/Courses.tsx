@@ -1,18 +1,20 @@
 import React from 'react';
 import { CourseCard } from '../components/CourseCard';
+import myImage from '../assets/images/barbarik.jpg'
+import cofe from '../assets/images/cofe.jpg'
 
 const courses = [
     {
         id: '1',
         title: "Основы бариста",
         description: "Учитесь варить кофе, как профессионал.",
-        imageUrl: "/boris.jpg"
+        imageUrl: `${myImage}`
     },
     {
         id: '2',
         title: "Продвинутые техники",
         description: "Различные способы приготовления кофе.",
-        imageUrl: "/boris.jpg"
+        imageUrl: `${cofe}`
     }
 ];
 

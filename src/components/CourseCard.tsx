@@ -13,7 +13,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ id, title, description, 
             {/* Левая часть с изображением */}
             {imageUrl && (
                 <div className="md:w-1/3 w-full">
-                    <img src="/logo192.png"  alt={title} className="w-full h-full object-cover" />
+                    <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
                 </div>
             )}
 

@@ -9,9 +9,9 @@ export const About: React.FC = () => {
             {/* Фотография вверху */}
             <div className="mb-6">
                 <img
-                    src="/boris.jpg" // Замените на путь к вашей фотографии
-                    alt="О нас"
-                    className="w-full h-auto rounded-lg shadow-lg"
+                    src="/src/assets/images/cofe.jpg" // Замените на путь к вашей фотографии
+                    // alt="О нас"
+                    // className="w-full h-auto rounded-lg shadow-lg"
                 />
             </div>
             {/* Текст в два столбца */}
