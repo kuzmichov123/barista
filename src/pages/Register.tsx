@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { registerUser } from '../redux/slices/authSlice' 
-import ReCAPTCHA from 'react-google-recaptcha'
-import { AppDispatch } from '../redux/store' 
+import { registerUser } from '../redux/slices/authSlice'
+import { useNavigate } from 'react-router-dom' // Импорт useNavigate
+import { AppDispatch } from '../redux/store'
 
 export const Register: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -11,23 +11,32 @@ export const Register: React.FC = () => {
         email: '',
         password: '',
         confirmPassword: '',
-        captcha: ''
     })
 
     const dispatch = useDispatch<AppDispatch>() // Используем типизированный dispatch
-
-    const onRecaptchaChange = (value: string | null) => {
-        setFormData({ ...formData, captcha: value || '' })
-    }
+    const navigate = useNavigate() // Инициализация useNavigate
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target
         setFormData({ ...formData, [id]: value })
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        dispatch(registerUser(formData)) // Отправка данных в Redux
+
+        if (formData.password !== formData.confirmPassword) {
+            alert('Пароли не совпадают')
+            return
+        }
+
+        try {
+            await dispatch(registerUser(formData)).unwrap()
+            console.log('Регистрация успешна')
+            navigate('/') // Перенаправление на главную страницу
+        } catch (error) {
+            console.error('Ошибка при регистрации:', error)
+            alert('Ошибка при регистрации. Попробуйте снова.')
+        }
     }
 
     return (
@@ -98,10 +107,6 @@ export const Register: React.FC = () => {
                         className="w-full border border-gray-300 p-2 rounded-md"
                         required
                     />
-                </div>
-
-                <div className="mb-6">
-                    <ReCAPTCHA sitekey="your-site-key" onChange={onRecaptchaChange} />
                 </div>
 
                 <button

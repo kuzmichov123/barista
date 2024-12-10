@@ -1,4 +1,5 @@
 import React from 'react'
+import cofe from '../assets/images/cofe.jpg'
 
 export const About: React.FC = () => {
     return (
@@ -7,11 +8,11 @@ export const About: React.FC = () => {
                 О нас
             </h1>
             {/* Фотография вверху */}
-            <div className="mb-6">
+            <div className="mb-6 ">
                 <img
-                    src="/src/assets/images/cofe.jpg" // Замените на путь к вашей фотографии
-                    // alt="О нас"
-                    // className="w-full h-auto rounded-lg shadow-lg"
+                    src={cofe}
+                    alt="О нас"
+                    className="w-full h-[600px] rounded-lg shadow-lg  object-cover"
                 />
             </div>
             {/* Текст в два столбца */}

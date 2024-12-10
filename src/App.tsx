@@ -8,7 +8,8 @@ import { Contact } from './pages/Contact'
 import { CourseDetails } from './pages/CourseDetails'
 import { Login } from './pages/Login'       
 import { Register } from './pages/Register'
-import {About} from "./pages/About" 
+import {About} from "./pages/About"
+import {ForgotPassword} from "./pages/ForgotPassword";
 
 const App: React.FC = () => {
     return (
@@ -23,7 +24,8 @@ const App: React.FC = () => {
                         <Route path="/about" element={<About />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/login" element={<Login />} />         
-                        <Route path="/register" element={<Register />} />   
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </main>
