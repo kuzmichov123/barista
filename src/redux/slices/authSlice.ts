@@ -1,163 +1,257 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { login, register, updateProfile, confirmEmail, forgotPassword, confirmPassword } from '../../api';
 
-// Интерфейсы данных
 interface LoginData {
-    email: string
-    password: string
+    email: string;
+    password: string;
 }
 
 interface RegisterData {
-    name: string
-    username: string
-    email: string
-    password: string
-    confirmPassword: string
+    firstName: string;
+    lastName: string;
+    middleName: string;
+    login: string;
+    email: string;
+    password: string;
+}
+
+interface UpdateProfileData {
+    firstName: string;
+    lastName: string;
+    middleName: string;
+    login: string;
+}
+
+interface ConfirmEmailData {
+    token: string;
+}
+
+interface ForgotPasswordData {
+    email: string;
+}
+
+interface ConfirmPasswordData {
+    newPassword: string;
 }
 
 interface AuthState {
-    user: { username: string; email: string } | null
-    loading: boolean
-    error: string | null
+    user: {
+        firstName: string;
+        lastName: string;
+        middleName: string;
+        login: string;
+        email: string;
+        role: string;
+    } | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    loading: boolean;
+    error: string | null;
 }
 
-// Ключ для хранения данных пользователя в localStorage
-const LOCAL_STORAGE_USER_KEY = 'authUser'
+const LOCAL_STORAGE_USER_KEY = 'authUser';
+const LOCAL_STORAGE_ACCESS_TOKEN = 'accessToken';
+const LOCAL_STORAGE_REFRESH_TOKEN = 'refreshToken';
 
-// Попытка восстановления пользователя из localStorage
 const savedUser = localStorage.getItem(LOCAL_STORAGE_USER_KEY)
     ? JSON.parse(localStorage.getItem(LOCAL_STORAGE_USER_KEY)!)
     : null;
+const savedAccessToken = localStorage.getItem(LOCAL_STORAGE_ACCESS_TOKEN) || null;
+const savedRefreshToken = localStorage.getItem(LOCAL_STORAGE_REFRESH_TOKEN) || null;
 
-console.log('Сохраненный пользователь при инициализации Redux: ', savedUser);
-
-
-// AsyncThunk: логин пользователя
-export const loginUser = createAsyncThunk(
-    'auth/login',
-    async (credentials: LoginData, thunkAPI) => {
-        try {
-            console.log('credentials: ', credentials); // Проверяем отправляемые данные
-            const response = await fetch('/api/v1/user-login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(credentials),
-            });
-
-            console.log('response.status: ', response.status); // Проверяем статус ответа
-
-            if (!response.ok) {
-                throw new Error('Ошибка при входе');
-            }
-
-            const data = await response.json();
-            console.log('data: ', data);
-
-            return {
-                username: data.username,
+export const loginUser = createAsyncThunk<
+    { user: AuthState['user']; accessToken: string; refreshToken: string },
+    LoginData,
+    { rejectValue: string }
+>('auth/login', async (credentials, { rejectWithValue }) => {
+    try {
+        const data = await login(credentials);
+        return {
+            user: {
+                firstName: data.firstName,
+                lastName: data.lastName,
+                middleName: data.middleName,
+                login: data.login,
                 email: data.email,
-            };
-        } catch (error: any) {
-            console.error('Ошибка при входе: ', error);
-            return thunkAPI.rejectWithValue(error.message);
-        }
+                role: data.role,
+            },
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+        };
+    } catch (error: any) {
+        return rejectWithValue(error.message);
     }
-);
+});
 
-
-// AsyncThunk: регистрация пользователя
 export const registerUser = createAsyncThunk<
     { username: string; email: string },
     RegisterData,
     { rejectValue: string }
->(
-    'auth/register',
-    async (data: RegisterData, thunkAPI) => {
-        try {
-            const payload = {
-                nameUser: data.name,
-                loginUser: data.username,
-                email: data.email,
-                password: data.password,
-            }
-
-            const response = await fetch('/api/v1/user-registration', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            })
-
-            if (!response.ok) {
-                throw new Error('Ошибка при регистрации')
-            }
-
-            const serverResponse = await response.json()
-            console.log('Ответ от сервера после регистрации: ', serverResponse)
-
-            return {
-                username: data.username,
-                email: data.email,
-            }
-        } catch (error: any) {
-            console.error('Ошибка при регистрации: ', error.message)
-            return thunkAPI.rejectWithValue(error.message)
-        }
+>('auth/register', async (data, { rejectWithValue }) => {
+    try {
+        const result = await register(data);
+        return result;
+    } catch (error: any) {
+        return rejectWithValue(error.message);
     }
-)
+});
 
-// Slice для авторизации
+export const updateUserProfile = createAsyncThunk<
+    AuthState['user'] & { accessToken: string },
+    UpdateProfileData,
+    { rejectValue: string }
+>('auth/updateProfile', async (data, { rejectWithValue }) => {
+    try {
+        const result = await updateProfile(data);
+        return {
+            firstName: result.firstName,
+            lastName: result.lastName,
+            middleName: result.middleName,
+            login: result.login,
+            email: '',
+            role: '',
+            accessToken: result.accessToken,
+        };
+    } catch (error: any) {
+        return rejectWithValue(error.message);
+    }
+});
+
+export const confirmUserEmail = createAsyncThunk<
+    void,
+    ConfirmEmailData,
+    { rejectValue: string }
+>('auth/confirmEmail', async (data, { rejectWithValue }) => {
+    try {
+        await confirmEmail(data);
+    } catch (error: any) {
+        return rejectWithValue(error.message);
+    }
+});
+
+export const forgotUserPassword = createAsyncThunk<
+    void,
+    ForgotPasswordData,
+    { rejectValue: string }
+>('auth/forgotPassword', async (data, { rejectWithValue }) => {
+    try {
+        await forgotPassword(data);
+    } catch (error: any) {
+        return rejectWithValue(error.message);
+    }
+});
+
+export const confirmUserPassword = createAsyncThunk<
+    void,
+    ConfirmPasswordData,
+    { rejectValue: string }
+>('auth/confirmPassword', async (data, { rejectWithValue }) => {
+    try {
+        await confirmPassword(data);
+    } catch (error: any) {
+        return rejectWithValue(error.message);
+    }
+});
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
         user: savedUser,
+        accessToken: savedAccessToken,
+        refreshToken: savedRefreshToken,
         loading: false,
         error: null,
     } as AuthState,
     reducers: {
         logout: (state) => {
-            console.log('Очищаем Redux и localStorage при разлогинивании')
-            state.user = null
-            localStorage.removeItem(LOCAL_STORAGE_USER_KEY)
+            state.user = null;
+            state.accessToken = null;
+            state.refreshToken = null;
+            localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+            localStorage.removeItem(LOCAL_STORAGE_ACCESS_TOKEN);
+            localStorage.removeItem(LOCAL_STORAGE_REFRESH_TOKEN);
         },
     },
     extraReducers: (builder) => {
         builder
             .addCase(loginUser.pending, (state) => {
-                state.loading = true
-                state.error = null
+                state.loading = true;
+                state.error = null;
             })
             .addCase(loginUser.fulfilled, (state, action) => {
-                console.log('Login успешен, обновляем хранилище и localStorage', action.payload)
-                state.loading = false
-                state.user = action.payload
-                localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(action.payload))
+                state.loading = false;
+                state.user = action.payload.user;
+                state.accessToken = action.payload.accessToken;
+                state.refreshToken = action.payload.refreshToken;
+                localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(action.payload.user));
+                localStorage.setItem(LOCAL_STORAGE_ACCESS_TOKEN, action.payload.accessToken);
+                localStorage.setItem(LOCAL_STORAGE_REFRESH_TOKEN, action.payload.refreshToken);
             })
             .addCase(loginUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload ? String(action.payload) : 'Ошибка при входе';
+                state.error = action.payload || 'Ошибка при входе';
             })
-
             .addCase(registerUser.pending, (state) => {
-                state.loading = true
-                state.error = null
+                state.loading = true;
+                state.error = null;
             })
-            .addCase(registerUser.fulfilled, (state, action) => {
-                console.log('Регистрация успешна, обновляем хранилище и localStorage', action.payload)
-                state.loading = false
-                state.user = action.payload
-                localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(action.payload))
+            .addCase(registerUser.fulfilled, (state) => {
+                state.loading = false;
             })
             .addCase(registerUser.rejected, (state, action) => {
-                console.error('Ошибка при регистрации: ', action.payload)
-                state.loading = false
-                state.error = action.payload || 'Ошибка при регистрации'
+                state.loading = false;
+                state.error = action.payload || 'Ошибка при регистрации';
             })
+            .addCase(updateUserProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = { ...state.user, ...action.payload } as AuthState['user'];
+                state.accessToken = action.payload.accessToken;
+                localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(state.user));
+                localStorage.setItem(LOCAL_STORAGE_ACCESS_TOKEN, action.payload.accessToken);
+            })
+            .addCase(updateUserProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Ошибка при обновлении профиля';
+            })
+            .addCase(confirmUserEmail.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(confirmUserEmail.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(confirmUserEmail.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Ошибка при подтверждении email';
+            })
+            .addCase(forgotUserPassword.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(forgotUserPassword.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(forgotUserPassword.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Ошибка при запросе восстановления пароля';
+            })
+            .addCase(confirmUserPassword.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(confirmUserPassword.fulfilled, (state) => {
+                state.loading = false;
+            })
+            .addCase(confirmUserPassword.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Ошибка при сбросе пароля';
+            });
     },
-})
+});
 
-// Экспортируем действия и редьюсер
-export const { logout } = authSlice.actions
-export default authSlice.reducer
+export const { logout } = authSlice.actions;
+export default authSlice.reducer;

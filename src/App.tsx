@@ -10,6 +10,10 @@ import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import {About} from "./pages/About"
 import {ForgotPassword} from "./pages/ForgotPassword";
+import {VerifyEmail} from "./pages/VerifyEmail";
+import {Profile} from "./pages/Profile";
+import {ResetPassword} from "./pages/ResetPassword";
+import {ConfirmEmail} from "./pages/ConfirmEmail";
 
 const App: React.FC = () => {
     return (
@@ -25,7 +29,11 @@ const App: React.FC = () => {
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/login" element={<Login />} />         
                         <Route path="/register" element={<Register />} />
+                        <Route path="/verify-email" element={<VerifyEmail />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/barista/reset-password" element={<ResetPassword />} />
+                        <Route path="/barista/confirm-email" element={<ConfirmEmail />} />
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </main>
