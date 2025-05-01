@@ -1,7 +1,7 @@
-version: '3.8'
-
 services:
   frontend:
     build: .
     ports:
       - "3000:80"
+    environment:
+      - BACKEND_URL=http://94.232.244.69:8095
