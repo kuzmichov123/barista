@@ -112,6 +112,14 @@ export const Profile: React.FC = () => {
                     </p>
                 )}
             </form>
+            {user.role === 'Admin' && (
+                <button
+                    onClick={() => navigate('/admin/courses')}
+                    className="mt-4 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-300"
+                >
+                    Управление курсами
+                </button>
+            )}
             <button
                 onClick={() => navigate('/')}
                 className="mt-4 w-full text-blue-500 hover:underline text-center"

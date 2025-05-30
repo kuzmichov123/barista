@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { loginUser, forgotUserPassword } from '../redux/slices/authSlice';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AppDispatch } from '../redux/store';
 
 export const Login: React.FC = () => {
@@ -12,8 +12,21 @@ export const Login: React.FC = () => {
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
     const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [forgotPasswordMessage, setForgotPasswordMessage] = useState<string | null>(null);
+    const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        console.log('Login: Component mounted');
+        const params = new URLSearchParams(location.search);
+        if (params.get('confirmed') === 'true') {
+            setConfirmationMessage('Ваш email успешно подтвержден! Пожалуйста, войдите.');
+        }
+        return () => {
+            console.log('Login: Component unmounted');
+        };
+    }, [location.search]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -55,6 +68,9 @@ export const Login: React.FC = () => {
             <h1 className="text-2xl font-bold mb-6 text-center">
                 {isForgotPassword ? 'Восстановить пароль' : 'Вход'}
             </h1>
+            {confirmationMessage && (
+                <p className="text-green-500 text-center mb-4">{confirmationMessage}</p>
+            )}
             {!isForgotPassword ? (
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">

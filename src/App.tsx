@@ -6,7 +6,7 @@ import { Home } from './pages/Home'
 import { Courses } from './pages/Courses'
 import { Contact } from './pages/Contact'
 import { CourseDetails } from './pages/CourseDetails'
-import { Login } from './pages/Login'       
+import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import {About} from "./pages/About"
 import {ForgotPassword} from "./pages/ForgotPassword";
@@ -14,6 +14,7 @@ import {VerifyEmail} from "./pages/VerifyEmail";
 import {Profile} from "./pages/Profile";
 import {ResetPassword} from "./pages/ResetPassword";
 import {ConfirmEmail} from "./pages/ConfirmEmail";
+import {AdminCourses} from "./pages/AdminCourses";
 
 const App: React.FC = () => {
     return (
@@ -27,13 +28,14 @@ const App: React.FC = () => {
                         <Route path="/courses/:id" element={<CourseDetails />} />
                         <Route path="/about" element={<About />} />
                         <Route path="/contact" element={<Contact />} />
-                        <Route path="/login" element={<Login />} />         
+                        <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/verify-email" element={<VerifyEmail />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/barista/reset-password" element={<ResetPassword />} />
                         <Route path="/barista/confirm-email" element={<ConfirmEmail />} />
+                        <Route path="/admin/courses" element={<AdminCourses />} />
                         <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                 </main>

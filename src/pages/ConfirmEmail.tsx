@@ -1,5 +1,6 @@
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import apiClient from '../api/api';
 
 export const ConfirmEmail = () => {
     const [searchParams] = useSearchParams();
@@ -8,38 +9,37 @@ export const ConfirmEmail = () => {
     const [status, setStatus] = useState('Подтверждение email...');
 
     useEffect(() => {
+        console.log('ConfirmEmail: Component mounted');
         if (!token) {
             setStatus('Ошибка: токен отсутствует');
+            console.log('ConfirmEmail: No token provided');
             return;
         }
 
-        console.log('Sending request to /api/v1/user/confirm/email with token:', token);
-        fetch('/api/v1/user/confirm/email', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({}),
-        })
+        console.log('ConfirmEmail: Sending confirm email request with token:', token);
+        apiClient
+            .post('/v1/user/confirm/email', { token })
             .then(res => {
-                console.log('Response status:', res.status);
+                console.log('ConfirmEmail: Response status:', res.status);
                 if (res.status === 204) {
                     setStatus('Email успешно подтвержден!');
-                    setTimeout(() => navigate('/barista/login?confirmed=true'), 2000);
-                    return;
+                    console.log('ConfirmEmail: Navigating to /barista/login?confirmed=true');
+                    navigate('/barista/login?confirmed=true', { replace: true });
+                    console.log('ConfirmEmail: Navigate called');
+                } else {
+                    console.log('ConfirmEmail: Unexpected response status:', res.status);
+                    setStatus('Ошибка: неожиданный ответ сервера');
                 }
-                if (res.status === 401) {
-                    throw new Error('Недействительный или истекший токен');
-                }
-                return res.json().then(data => {
-                    throw new Error(data.error || 'Ошибка сервера');
-                });
             })
             .catch(err => {
-                console.error('Fetch error:', err);
-                setStatus(`Ошибка: ${err.message || 'Ошибка сервера'}`);
+                console.error('ConfirmEmail: Error:', err);
+                const errorMessage = err.response?.data?.message || err.message || 'Ошибка сервера';
+                setStatus(`Ошибка: ${errorMessage}`);
             });
+
+        return () => {
+            console.log('ConfirmEmail: Component unmounted');
+        };
     }, [token, navigate]);
 
     return (

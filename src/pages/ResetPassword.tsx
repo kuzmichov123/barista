@@ -23,7 +23,10 @@ export const ResetPassword = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ newPassword: password }),
+                body: JSON.stringify({
+                    newPassword: password,
+                    token: token
+                }),
                 mode: 'no-cors',
             })
 
