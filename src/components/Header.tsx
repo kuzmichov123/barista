@@ -27,8 +27,8 @@ export const Header: React.FC = () => {
     const isOnResetPassword = location.pathname === '/reset-password';
 
     return (
-        <header className="bg-[#4E3B31] p-4 font-halmahera">
-            <nav className="container mx-auto flex justify-between items-center">
+        <header className="bg-[#4E3B31] p-2 font-halmahera flex items-center justify-center">
+            <nav className="container flex justify-between items-center">
                 <Link
                     to="/"
                     className="text-[#F6E7D1] text-2xl font-bold hover:text-yellow-200 transition-all duration-300"
@@ -38,7 +38,7 @@ export const Header: React.FC = () => {
                 </Link>
 
                 <button
-                    className="md:hidden text-[#F6E7D1] text-2xl focus:outline-none hover:text-yellow-200 transition-all duration-300"
+                    className="md:hidden text-[#F6E7D1] text-2xl focus:outline-none hover:text-white transition duration-300"
                     onClick={toggleMenu}
                     aria-label="Toggle menu"
                 >
@@ -60,6 +60,14 @@ export const Header: React.FC = () => {
                     >
                         Курсы
                     </Link>
+                    {user && (
+                        <Link
+                            to="/my-courses"
+                            className="text-lg hover:text-yellow-200 hover:scale-105 transition-all duration-300"
+                        >
+                            Мои курсы
+                        </Link>
+                    )}
                     <Link
                         to="/about"
                         className="text-lg hover:text-yellow-200 hover:scale-105 transition-all duration-300"
@@ -70,7 +78,7 @@ export const Header: React.FC = () => {
                         to="/contact"
                         className="text-lg hover:text-yellow-200 hover:scale-105 transition-all duration-300"
                     >
-                        Контакты
+                        Служба поддержки
                     </Link>
                 </div>
 
@@ -81,14 +89,23 @@ export const Header: React.FC = () => {
                                 to="/profile"
                                 className="bg-[#5B483D] px-4 py-2 rounded-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
                             >
-                                Профиль
+                                Мой аккаунт
                             </Link>
+
                             <button
                                 onClick={handleLogout}
                                 className="border-2 border-[#F6E7D1] px-4 py-2 rounded-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
                             >
                                 Выйти
                             </button>
+                            {user.role === 'Admin' && ( // Добавляем кнопку "Панель управления" для админов
+                                <Link
+                                    to="/admin/courses"
+                                    className="bg-[#5B483D] px-4 py-2 rounded-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
+                                >
+                                    Панель управления
+                                </Link>
+                            )}
                         </>
                     ) : (
                         <>
@@ -125,7 +142,7 @@ export const Header: React.FC = () => {
                 </div>
 
                 {isMenuOpen && (
-                    <div className="md:hidden absolute top-16 py-5 left-0 w-full bg-[#4E3B31] flex flex-col items-center text-[#F6E7D1] z-50 shadow-lg">
+                    <div className="md:hidden absolute top-12 py-5 left-0 w-full bg-[#4E3B31] flex flex-col items-center text-[#F6E7D1] z-50 shadow-lg">
                         <Link
                             to="/courses"
                             className="py-3 px-4 my-1 w-11/12 bg-[#5B483D] rounded-lg text-center text-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
@@ -133,6 +150,15 @@ export const Header: React.FC = () => {
                         >
                             Курсы
                         </Link>
+                        {user && (
+                            <Link
+                                to="/my-courses"
+                                className="py-3 px-4 my-1 w-11/12 bg-[#5B483D] rounded-lg text-center text-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
+                                onClick={toggleMenu}
+                            >
+                                Мои курсы
+                            </Link>
+                        )}
                         <Link
                             to="/about"
                             className="py-3 px-4 my-1 w-11/12 bg-[#5B483D] rounded-lg text-center text-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
@@ -145,7 +171,7 @@ export const Header: React.FC = () => {
                             className="py-3 px-4 my-1 w-11/12 bg-[#5B483D] rounded-lg text-center text-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
                             onClick={toggleMenu}
                         >
-                            Контакты
+                            Служба поддержки
                         </Link>
                         {user ? (
                             <>
@@ -154,14 +180,24 @@ export const Header: React.FC = () => {
                                     className="py-3 px-4 my-1 w-11/12 bg-[#5B483D] rounded-lg text-center text-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
                                     onClick={toggleMenu}
                                 >
-                                    Профиль
+                                    Мой аккаунт
                                 </Link>
+
                                 <button
                                     onClick={handleLogout}
                                     className="py-3 px-4 my-1 w-11/12 bg-transparent border-2 border-[#F6E7D1] rounded-lg text-center text-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
                                 >
                                     Выйти
                                 </button>
+                                {user.role === 'Admin' && ( // Добавляем "Панель управления" в мобильное меню
+                                    <Link
+                                        to="/admin/courses"
+                                        className="py-3 px-4 my-1 w-11/12 bg-[#5B483D] rounded-lg text-center text-lg text-[#F6E7D1] hover:bg-yellow-200 hover:text-[#4E3B31] hover:scale-105 transition-all duration-300 shadow-md"
+                                        onClick={toggleMenu}
+                                    >
+                                        Панель управления
+                                    </Link>
+                                )}
                             </>
                         ) : (
                             <>

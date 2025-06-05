@@ -10,6 +10,7 @@ import {
     selectAdminCoursesError,
 } from '../redux/slices/adminCoursesSlice';
 import { AppDispatch, RootState } from '../redux/store';
+import { Modal } from '../components/Modal';
 
 export const AdminCourses: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -25,6 +26,9 @@ export const AdminCourses: React.FC = () => {
     const [coverImage, setCoverImage] = useState<File | null>(null);
     const [contentFiles, setContentFiles] = useState<File[]>([]);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null); // Ошибка удаления
+    const [isModalOpen, setIsModalOpen] = useState(false); // Состояние модального окна
+    const [courseToDelete, setCourseToDelete] = useState<string | null>(null); // Slug курса для удаления
 
     useEffect(() => {
         if (isAuthenticated && userRole === 'Admin' && status === 'idle') {
@@ -61,14 +65,29 @@ export const AdminCourses: React.FC = () => {
         }
     };
 
-    const handleDelete = async (slug: string) => {
-        if (window.confirm(`Вы уверены, что хотите удалить курс с slug: ${slug}?`)) {
+    const handleDelete = (slug: string) => {
+        setCourseToDelete(slug); // Устанавливаем slug курса для удаления
+        setIsModalOpen(true); // Открываем модальное окно
+    };
+
+    const handleConfirmDelete = async () => {
+        if (courseToDelete) {
             try {
-                await dispatch(deleteCourse(slug)).unwrap();
+                await dispatch(deleteCourse(courseToDelete)).unwrap();
+                setDeleteError(null); // Сбрасываем ошибку при успехе
             } catch (err) {
                 console.error('Failed to delete course:', err);
+                setDeleteError(err instanceof Error ? err.message : 'Неизвестная ошибка при удалении курса');
+            } finally {
+                setIsModalOpen(false); // Закрываем модалку после попытки удаления
+                setCourseToDelete(null); // Сбрасываем slug
             }
         }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false); // Закрываем модалку без удаления
+        setCourseToDelete(null); // Сбрасываем slug
     };
 
     if (!isAuthenticated) {
@@ -83,7 +102,7 @@ export const AdminCourses: React.FC = () => {
     }
 
     return (
-        <div className="container mx-auto p-6">
+        <div className=" p-6">
             <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center font-brightSunkiss">
                 Управление курсами
             </h1>
@@ -99,7 +118,7 @@ export const AdminCourses: React.FC = () => {
                             id="title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             required
                         />
                     </div>
@@ -111,7 +130,7 @@ export const AdminCourses: React.FC = () => {
                             id="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             rows={4}
                             required
                         />
@@ -125,7 +144,7 @@ export const AdminCourses: React.FC = () => {
                             id="price"
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             step="0.01"
                             required
                         />
@@ -139,7 +158,7 @@ export const AdminCourses: React.FC = () => {
                             id="coverImage"
                             accept="image/*"
                             onChange={(e) => setCoverImage(e.target.files?.[0] || null)}
-                            className="mt-1 block w-full"
+                            className="mt-1 block w-full border border-gray-300"
                             required
                         />
                     </div>
@@ -153,7 +172,7 @@ export const AdminCourses: React.FC = () => {
                             accept="*/*"
                             multiple
                             onChange={(e) => setContentFiles(Array.from(e.target.files || []))}
-                            className="mt-1 block w-full"
+                            className="mt-1 block w-full border border-gray-300"
                             required
                         />
                     </div>
@@ -180,6 +199,9 @@ export const AdminCourses: React.FC = () => {
                         {error || 'Не удалось загрузить курсы.'}
                     </p>
                 )}
+                {deleteError && ( // Отображаем ошибку удаления на странице
+                    <p className="text-center text-red-500 mb-4">Ошибка удаления: {deleteError}</p>
+                )}
                 {status === 'succeeded' && courses.length === 0 && (
                     <p className="text-center text-gray-500">Пока нет доступных курсов.</p>
                 )}
@@ -198,7 +220,6 @@ export const AdminCourses: React.FC = () => {
                                 <button
                                     onClick={() => handleDelete(course.slug)}
                                     className="bg-red-600 text-white py-1 px-3 rounded-md hover:bg-red-700"
-                                    // disabled={status === 'loading'}
                                 >
                                     Удалить
                                 </button>
@@ -207,6 +228,15 @@ export const AdminCourses: React.FC = () => {
                     </div>
                 )}
             </div>
+            <Modal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                title="Подтверждение удаления"
+                message={`Вы уверены, что хотите удалить курс с slug: ${courseToDelete}?`}
+                onConfirm={handleConfirmDelete}
+                confirmText="Удалить"
+                showCancel={true}
+            />
         </div>
     );
 };

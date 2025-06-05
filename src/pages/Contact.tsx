@@ -37,7 +37,7 @@ export const Contact: React.FC = () => {
                         </div>
                         <button
                             type="submit"
-                            className="w-full py-3 bg-gradient-to-r from-[#4E3B31] to-[#F6E7D1] text-white font-bold rounded-md shadow-md hover:shadow-lg transition-all duration-300"
+                            className="w-full py-3 bg-[#4E3B31] text-white font-bold rounded-md shadow-md hover:shadow-lg transition-all duration-300"
                         >
                             Отправить
                         </button>

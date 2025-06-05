@@ -15,15 +15,14 @@ export const About: React.FC = () => {
                     className="w-full h-[600px] rounded-lg shadow-lg  object-cover"
                 />
             </div>
-            {/* Текст в два столбца */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4  rounded-lg shadow-md">
+                <div className="p-4  rounded-lg shadow-md bg-[#FCF6EB]">
                     <h2 className="text-2xl font-semibold mb-2">Наша Миссия</h2>
                     <p>
                         Мы стремимся обучать людей искусству приготовления кофе и создать сообщество, где каждый сможет стать настоящим бариста.
                     </p>
                 </div>
-                <div className="p-4  rounded-lg shadow-md">
+                <div className="p-4  rounded-lg shadow-md bg-[#FCF6EB]">
                     <h2 className="text-2xl font-semibold mb-2">Наши Ценности</h2>
                     <p>
                         Мы ценим качество, инновации и стремление к совершенству, обучая своих студентов основам приготовления кофе.

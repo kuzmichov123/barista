@@ -1,6 +1,5 @@
 import apiClient from "./api";
 
-
 interface RegisterData {
     firstName: string;
     lastName: string;
@@ -53,23 +52,17 @@ export const register = async (data: RegisterData) => {
             status: error.response?.status,
             data: error.response?.data,
         });
-        throw new Error('Ошибка регистрации: ' + (error.response?.data?.message || error.message));
+        throw error.response?.data || { message: error.message };
     }
 };
 
 export const login = async ({ email, password }: LoginData) => {
-    console.log('Sending login request with data:', { email, password });
     try {
         const response = await apiClient.post('/v1/user/login', { email, password });
-        console.log('Login response:', response.status, response.data);
         return response.data;
     } catch (error: any) {
-        console.error('Login error:', {
-            message: error.message,
-            status: error.response?.status,
-            data: error.response?.data,
-        });
-        throw new Error('Ошибка авторизации: ' + (error.response?.data?.message || error.message));
+        const errorMessage = error.response?.data?.message || 'Произошла ошибка при входе';
+        throw new Error(errorMessage);
     }
 };
 
@@ -85,14 +78,14 @@ export const updateProfile = async (data: UpdateProfileData) => {
             status: error.response?.status,
             data: error.response?.data,
         });
-        throw new Error('Ошибка при обновлении профиля: ' + (error.response?.data?.message || error.message));
+        throw new Error((error.response?.data?.message || error.message));
     }
 };
 
 export const confirmEmail = async ({ token }: ConfirmEmailData) => {
     console.log('Sending confirm email request with token:', token);
     try {
-        const response = await apiClient.post('/v1/user/confirm/email', { token });
+        const response = await apiClient.post('/v1/user/email/confirm', { token });
         console.log('Confirm email response:', response.status, response.data);
         return response.data;
     } catch (error: any) {
@@ -106,18 +99,19 @@ export const confirmEmail = async ({ token }: ConfirmEmailData) => {
 };
 
 export const forgotPassword = async ({ email }: ForgotPasswordData) => {
-    console.log('Sending forgot password request for email:', email);
+    console.log('Отправка запроса на восстановление пароля для:', email);
     try {
         const response = await apiClient.post('/v1/user/password', { email });
-        console.log('Forgot password response:', response.status, response.data);
+        console.log('Ответ на восстановление пароля:', response.status, response.data);
         return response.data;
     } catch (error: any) {
-        console.error('Forgot password error:', {
+        console.error('Ошибка восстановления пароля:', {
             message: error.message,
             status: error.response?.status,
             data: error.response?.data,
         });
-        throw new Error('Ошибка при запросе восстановления пароля: ' + (error.response?.data?.message || error.message));
+        const errorMessage = error.response?.data?.message || 'Произошла ошибка при восстановлении пароля';
+        throw new Error(errorMessage);
     }
 };
 

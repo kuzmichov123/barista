@@ -15,6 +15,7 @@ import {Profile} from "./pages/Profile";
 import {ResetPassword} from "./pages/ResetPassword";
 import {ConfirmEmail} from "./pages/ConfirmEmail";
 import {AdminCourses} from "./pages/AdminCourses";
+import {MyCourses} from "./pages/MyCourses";
 
 const App: React.FC = () => {
     return (
@@ -25,7 +26,8 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/courses" element={<Courses />} />
-                        <Route path="/courses/:id" element={<CourseDetails />} />
+                        <Route path="/my-courses" element={<MyCourses />} />
+                        <Route path="/course/:id" element={<CourseDetails />} />
                         <Route path="/about" element={<About />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/login" element={<Login />} />

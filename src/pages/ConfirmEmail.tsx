@@ -18,7 +18,11 @@ export const ConfirmEmail = () => {
 
         console.log('ConfirmEmail: Sending confirm email request with token:', token);
         apiClient
-            .post('/v1/user/confirm/email', { token })
+            .post('/v1/user/email/confirm', null, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
             .then(res => {
                 console.log('ConfirmEmail: Response status:', res.status);
                 if (res.status === 204) {

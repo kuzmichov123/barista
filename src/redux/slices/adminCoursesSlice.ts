@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import apiClient from '../../api/api';
-import {RootState} from "../store";
+import { RootState } from '../store';
 
 interface Course {
     slug: string;
@@ -55,7 +55,6 @@ export const createCourse = createAsyncThunk<
             formData.append('contentFiles', file); // Simplified to avoid indexing
         });
 
-        // Логируем содержимое FormData
         console.log('Creating course with FormData:');
         Array.from(formData.entries()).forEach(([key, value]) => {
             console.log(`${key}:`, value instanceof File ? `File(${value.name})` : value);
@@ -85,7 +84,9 @@ export const deleteCourse = createAsyncThunk<
 >('adminCourses/deleteCourse', async (slug, { rejectWithValue }) => {
     try {
         console.log('Deleting course with slug:', slug);
-        await apiClient.delete(`/api/v1/admin/courses/${slug}`);
+        const url = `/v1/admin/courses/${slug}`;
+        console.log('Full DELETE URL:', `${apiClient.defaults.baseURL}${url}`); // Логируем полный URL
+        const response = await apiClient.delete(url);
         return slug;
     } catch (error: any) {
         console.error('Delete course error:', error);

@@ -1,69 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCourses, fetchPurchasedCourses, selectCourses, selectPurchasedCourses, selectCoursesStatus, selectCoursesError } from '../redux/slices/coursesSlice';
-import { CourseCard } from '../components/CourseCard';
+import { Link, Navigate } from 'react-router-dom';
 import { AppDispatch, RootState } from '../redux/store';
-import { Modal } from '../components/Modal';
-import { useNavigate } from 'react-router-dom';
+import { fetchPurchasedCourses, fetchCourses, selectPurchasedCourses, selectCourses, selectCoursesStatus, selectCoursesError } from '../redux/slices/coursesSlice';
+import { CourseCard } from '../components/CourseCard';
 
-export const Courses: React.FC = () => {
+export const MyCourses: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const navigate = useNavigate();
-    const courses = useSelector(selectCourses);
-    const purchasedCourses = useSelector(selectPurchasedCourses);
+    const courses = useSelector(selectCourses); // Все курсы
+    const purchasedCourses = useSelector(selectPurchasedCourses); // Купленные курсы
     const status = useSelector(selectCoursesStatus);
     const error = useSelector(selectCoursesError);
     const isAuthenticated = useSelector((state: RootState) => !!state.auth.accessToken);
+    const userEmail = useSelector((state: RootState) => state.auth.user?.email || 'пользователь');
     const userRole = useSelector((state: RootState) => state.auth.user?.role);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (status === 'idle') {
-            dispatch(fetchCourses());
-            if (isAuthenticated) {
-                dispatch(fetchPurchasedCourses());
-            }
+        if (isAuthenticated && status === 'idle') {
+            dispatch(fetchPurchasedCourses());
+            dispatch(fetchCourses()); // Загружаем все курсы для админа
         }
-    }, [status, dispatch, isAuthenticated]);
+    }, [dispatch, status, isAuthenticated]);
 
-    const handlePurchaseClick = (courseId: string) => {
-        setSelectedCourseId(courseId);
-        if (!isAuthenticated) {
-            setIsModalOpen(true);
-        } else {
-            // Логика покупки (например, отправка запроса)
-            console.log(`Initiating purchase for course ID: ${courseId}`);
-            // Здесь можно добавить dispatch(purchaseCourse(courseId)), если такая функция есть
-        }
-    };
+    if (!isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
 
-    const handleLoginRedirect = () => {
-        setIsModalOpen(false);
-        navigate('/login');
-    };
+    // Админ видит все курсы, обычный пользователь — только купленные
+    const displayedCourses = userRole === 'Admin' ? courses : purchasedCourses;
 
-    const handleModalClose = () => {
-        setIsModalOpen(false);
-        setSelectedCourseId(null);
-    };
-
-    // Фильтруем курсы: для авторизованных показываем только не купленные, но админу показываем все
-    const displayedCourses = isAuthenticated && userRole !== 'Admin'
-        ? courses.filter(course => !purchasedCourses.some(purchased => purchased.slug === course.slug))
-        : courses;
+    console.log('MyCourses: Displayed courses:', displayedCourses);
 
     return (
         <div className="py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-4xl sm:text-5xl font-extrabold text-[#4E3B31] mb-10 font-halmahera">
-                    Курсы
+                    Мои курсы
                 </h1>
 
                 {status === 'loading' && (
                     <div className="flex justify-center items-center py-16">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-[#5B483D]"></div>
                         <p className="ml-4 text-lg text-[#5B483D] font-medium">Загрузка...</p>
+                    </div>
+                )}
+
+                {status === 'failed' && error !== 'Курсы не найдены' && (
+                    <div className="bg-white rounded-2xl shadow-md p-8 text-center">
+                        <p className="text-red-500 text-lg font-medium">
+                            {error || 'Не удалось загрузить курсы. Попробуйте позже.'}
+                        </p>
                     </div>
                 )}
 
@@ -86,27 +72,33 @@ export const Courses: React.FC = () => {
                             </svg>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-semibold text-[#4E3B31] mb-4 font-halmahera">
-                            Пока курсов нет!
+                            Пользователь {userEmail} еще не купил ни одного курса.
                         </h2>
                         <p className="text-[#5B483D] text-lg mb-8 font-highSansSerif">
-                            Мы готовим что-то крутое для тебя. Следи за обновлениями!
+                            Начните свое путешествие в мир кофе с нашими курсами!
                         </p>
-                    </div>
-                )}
-
-                {status === 'failed' && error !== 'Курсы не найдены' && (
-                    <div className="bg-white rounded-2xl shadow-md p-8 text-center">
-                        <p className="text-red-500 text-lg font-medium">
-                            {error || 'Не удалось загрузить курсы. Попробуйте позже.'}
-                        </p>
+                        <Link
+                            to="/courses"
+                            className="inline-block px-8 py-3 bg-[#5B483D] text-[#F6E7D1] font-semibold rounded-lg hover:bg-[#4E3B31] transition-all duration-300 shadow-md hover:shadow-lg"
+                        >
+                            Перейти к курсам
+                        </Link>
                     </div>
                 )}
 
                 {status === 'succeeded' && displayedCourses.length === 0 && (
                     <div className="bg-white rounded-2xl shadow-md p-8 text-center">
                         <p className="text-[#5B483D] text-lg mb-6 font-highSansSerif">
-                            {isAuthenticated && userRole !== 'Admin' ? 'Ты приобрел все доступные курсы!' : 'Пока курсов нет. Добавим скоро!'}
+                            {userRole === 'Admin' ? 'Пока курсов нет.' : 'Вы пока не приобрели ни одного курса.'}
                         </p>
+                        {userRole !== 'Admin' && (
+                            <Link
+                                to="/courses"
+                                className="inline-block px-8 py-3 bg-[#5B483D] text-[#F6E7D1] font-semibold rounded-lg hover:bg-[#4E3B31] transition-all duration-300 shadow-md hover:shadow-lg"
+                            >
+                                Перейти к курсам
+                            </Link>
+                        )}
                     </div>
                 )}
 
@@ -122,22 +114,12 @@ export const Courses: React.FC = () => {
                                 price={course.price}
                                 isAuthenticated={isAuthenticated}
                                 isAdmin={userRole === 'Admin'}
-                                onPurchaseClick={handlePurchaseClick}
-                                isPurchased={false} // Курсы на этой странице не куплены для обычных пользователей
+                                isPurchased={true}
+                                hasAccess={true} // Явно указываем, что доступ есть
                             />
                         ))}
                     </div>
                 )}
-
-                <Modal
-                    isOpen={isModalOpen}
-                    onClose={handleModalClose}
-                    title="Необходима авторизация"
-                    message="Войди, чтобы купить курс и открыть мир кофе!"
-                    onConfirm={handleLoginRedirect}
-                    confirmText="Войти"
-                    showCancel={true}
-                />
             </div>
         </div>
     );

@@ -1,37 +1,27 @@
-import React, {useEffect} from 'react';
-import {useDispatch, useSelector} from "react-redux";
-import {AppDispatch} from "../redux/store";
-import {checkCourseAccess, purchaseCourse, selectAccessError, selectAccessStatus} from "../redux/slices/coursesSlice";
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface CourseCardProps {
     id: string;
     title: string;
     description: string;
     imageUrl?: string;
+    price?: number;
     isAuthenticated: boolean;
     isAdmin: boolean;
+    onPurchaseClick?: (id: string) => void;
+    isPurchased?: boolean;
+    hasAccess?: boolean; // Новый проп для явного указания доступа
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ id, title, description, imageUrl, isAuthenticated, isAdmin }) => {
-    const dispatch = useDispatch<AppDispatch>();
-    const accessStatus = useSelector(selectAccessStatus);
-    const accessError = useSelector(selectAccessError);
-
-    useEffect(() => {
-        if (isAuthenticated && !isAdmin) {
-            dispatch(checkCourseAccess(id));
-        }
-    }, [dispatch, id, isAuthenticated, isAdmin]);
-
+export const CourseCard: React.FC<CourseCardProps> = ({ id, title, description, imageUrl, price, isAuthenticated, isAdmin, onPurchaseClick, isPurchased = false, hasAccess = false }) => {
     const handlePurchase = () => {
-        if (isAuthenticated) {
-            dispatch(purchaseCourse(id));
-        } else {
-            alert('Пожалуйста, войдите в систему, чтобы приобрести курс.');
+        if (onPurchaseClick) {
+            onPurchaseClick(id);
         }
     };
 
-    const canAccessCourse = isAdmin || (isAuthenticated && accessStatus === 'accessible');
+    console.log(`CourseCard: Rendering card with id=${id}, isPurchased=${isPurchased}, hasAccess=${hasAccess}`);
 
     return (
         <div className="w-full flex flex-col md:flex-row rounded-lg overflow-hidden shadow-lg bg-white hover:shadow-2xl transition duration-300 transform" style={{ minHeight: '300px' }}>
@@ -43,19 +33,26 @@ export const CourseCard: React.FC<CourseCardProps> = ({ id, title, description, 
             <div className="p-6 flex flex-col justify-between md:w-2/3 w-full font-highSansSerif">
                 <div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">{title}</h3>
-                    <p className="text-gray-700 mb-6">{description}</p>
+                    <p className="text-gray-700 mb-4">{description}</p>
+                    {!isPurchased && price !== undefined && (
+                        <p className="text-gray-900 font-bold text-lg mb-6">
+                            Цена: {price.toFixed(2)} ₽
+                        </p>
+                    )}
                 </div>
                 <div className="flex justify-end">
-                    {canAccessCourse ? (
-                        <a
-                            href={`/courses/${id}`}
+                    {isPurchased ? (
+                        <Link
+                            to={`/course/${id}`}
+                            state={{ hasAccess }} // Передаем hasAccess через state
                             className="inline-block relative text-white py-3 px-6 rounded-lg shadow-md text-lg transform transition-transform duration-300 hover:scale-105 hover:-translate-y-1"
                             style={{
                                 background: 'linear-gradient(to right, #7B5B30, #C8B09D)',
                                 overflow: 'hidden',
                             }}
+                            onClick={() => console.log(`Navigating to /course/${id}`)}
                         >
-                            <span className="relative z-10">Подробнее</span>
+                            <span className="relative z-10">Посмотреть курс</span>
                             <span
                                 className="absolute inset-0 opacity-30"
                                 style={{
@@ -67,7 +64,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ id, title, description, 
                                     zIndex: 0,
                                 }}
                             />
-                        </a>
+                        </Link>
                     ) : (
                         <button
                             onClick={handlePurchase}
@@ -90,9 +87,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ id, title, description, 
                                 }}
                             />
                         </button>
-                    )}
-                    {accessError && (
-                        <p className="text-red-500 text-sm mt-2">{accessError}</p>
                     )}
                 </div>
                 <style>

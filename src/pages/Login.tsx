@@ -13,24 +13,23 @@ export const Login: React.FC = () => {
     const [isForgotPassword, setIsForgotPassword] = useState(false);
     const [forgotPasswordMessage, setForgotPasswordMessage] = useState<string | null>(null);
     const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
+    const [loginError, setLoginError] = useState<string | null>(null); // Состояние для ошибки входа
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
     const location = useLocation();
 
     useEffect(() => {
-        console.log('Login: Component mounted');
         const params = new URLSearchParams(location.search);
         if (params.get('confirmed') === 'true') {
             setConfirmationMessage('Ваш email успешно подтвержден! Пожалуйста, войдите.');
         }
-        return () => {
-            console.log('Login: Component unmounted');
-        };
+        return () => {};
     }, [location.search]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
-        setFormData({ ...formData, [id]: value });
+        setFormData((prev) => ({ ...prev, [id]: value })); // Обновляем состояние
+        setLoginError(null); // Сбрасываем ошибку при изменении
     };
 
     const handleForgotPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,27 +38,24 @@ export const Login: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoginError(null);
         try {
             await dispatch(loginUser(formData)).unwrap();
-            console.log('Вход успешен');
             navigate('/');
         } catch (error: any) {
-            console.error('Ошибка при входе:', error);
-            const errorMessage = error.includes('Email не подтвержден')
-                ? 'Ваш email не подтвержден. Пожалуйста, проверьте почту и перейдите по ссылке для подтверждения.'
-                : `Ошибка при входе: ${error || 'Попробуйте снова'}`;
-            alert(errorMessage);
+            const errorMessage = error || 'Произошла ошибка при входе';
+            setLoginError(errorMessage);
         }
     };
 
     const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setForgotPasswordMessage(null); // Сбрасываем сообщение перед запросом
         try {
             await dispatch(forgotUserPassword({ email: forgotPasswordEmail })).unwrap();
             setForgotPasswordMessage('Письмо для восстановления пароля отправлено. Проверьте почту.');
         } catch (error: any) {
-            console.error('Ошибка при восстановлении пароля:', error);
-            setForgotPasswordMessage(`Ошибка: ${error || 'Попробуйте снова'}`);
+            setForgotPasswordMessage(error || 'Произошла ошибка при восстановлении пароля');
         }
     };
 
@@ -79,7 +75,7 @@ export const Login: React.FC = () => {
                         </label>
                         <input
                             type="email"
-                            id="email"
+                            id="email" // Исправлено с " `\email" на "email"
                             placeholder="Эл. адрес"
                             value={formData.email}
                             onChange={handleInputChange}
@@ -101,6 +97,9 @@ export const Login: React.FC = () => {
                             required
                         />
                     </div>
+                    {loginError && (
+                        <p className="text-red-500 text-center mb-4">{loginError}</p>
+                    )}
                     <button
                         type="submit"
                         className="w-full bg-gradient-to-r from-[#4E3B31] to-[#A08974] text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:from-[#5A3F32] hover:to-[#B59E83] transition-all duration-300"
@@ -131,17 +130,23 @@ export const Login: React.FC = () => {
                             required
                         />
                     </div>
+                    {forgotPasswordMessage && (
+                        <p
+                            className={`mt-4 text-center ${
+                                forgotPasswordMessage.includes('Ошибка')
+                                    ? 'text-red-500'
+                                    : 'text-green-500'
+                            }`}
+                        >
+                            {forgotPasswordMessage}
+                        </p>
+                    )}
                     <button
                         type="submit"
                         className="w-full bg-gradient-to-r from-[#4E3B31] to-[#A08974] text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:from-[#5A3F32] hover:to-[#B59E83] transition-all duration-300"
                     >
                         Отправить письмо
                     </button>
-                    {forgotPasswordMessage && (
-                        <p className={`mt-4 text-center ${forgotPasswordMessage.includes('Ошибка') ? 'text-red-500' : 'text-green-500'}`}>
-                            {forgotPasswordMessage}
-                        </p>
-                    )}
                     <button
                         type="button"
                         onClick={() => setIsForgotPassword(false)}

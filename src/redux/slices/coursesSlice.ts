@@ -25,20 +25,22 @@ interface CourseContent {
 
 interface CoursesState {
     courses: Course[];
+    purchasedCourses: Course[];
     currentCourse: CourseContent | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
-    accessStatus: 'idle' | 'checking' | 'accessible' | 'inaccessible';
-    accessError: string | null;
+    accessStatus: { [key: string]: 'idle' | 'checking' | 'accessible' | 'inaccessible' };
+    accessError: { [key: string]: string | null };
 }
 
 const initialState: CoursesState = {
     courses: [],
+    purchasedCourses: [],
     currentCourse: null,
     status: 'idle',
     error: null,
-    accessStatus: 'idle',
-    accessError: null,
+    accessStatus: {},
+    accessError: {},
 };
 
 export const fetchCourses = createAsyncThunk<
@@ -47,12 +49,31 @@ export const fetchCourses = createAsyncThunk<
     { rejectValue: string }
 >('courses/fetchCourses', async (_, { rejectWithValue }) => {
     try {
-        console.log('Fetching courses from /api/v1/courses');
         const response = await apiClient.get('/v1/courses');
         return response.data.courses_preview || [];
     } catch (error: any) {
         console.error('Fetch courses error:', error);
+        if (error.response?.status === 409 && error.response?.data?.error === 'COURSE_NOT_FOUND') {
+            return rejectWithValue(error.response.data.message || 'Курсы не найдены');
+        }
         return rejectWithValue(error.response?.data?.message || 'Не удалось загрузить курсы');
+    }
+});
+
+export const fetchPurchasedCourses = createAsyncThunk<
+    Course[],
+    void,
+    { rejectValue: string }
+>('courses/fetchPurchasedCourses', async (_, { rejectWithValue }) => {
+    try {
+        const response = await apiClient.get('/v1/courses/purchased');
+        return response.data.courses_preview || [];
+    } catch (error: any) {
+        console.error('Fetch purchased courses error:', error);
+        if (error.response?.status === 409 && error.response?.data?.error === 'COURSE_NOT_FOUND') {
+            return rejectWithValue(error.response.data.message || 'Курсы не найдены');
+        }
+        return rejectWithValue(error.response?.data?.message || 'Не удалось загрузить купленные курсы');
     }
 });
 
@@ -72,31 +93,32 @@ export const fetchCourseContent = createAsyncThunk<
 });
 
 export const checkCourseAccess = createAsyncThunk<
-    boolean,
+    { slug: string; hasAccess: boolean },
     string,
     { rejectValue: string }
->('courses/checkCourseAccess', async (slug, { rejectWithValue }) => {
+>('courses/checkCourseAccess', async (slug, { rejectWithValue, getState }) => {
     try {
         console.log(`Checking access for course: ${slug}`);
-        await apiClient.get(`/v1/courses/${slug}/content`);
-        return true;
+        const state = getState() as RootState;
+        const purchasedCourses = state.courses.purchasedCourses || [];
+        const hasAccess = purchasedCourses.some((course: Course) => course.slug === slug);
+        console.log(`Access check result for ${slug}: ${hasAccess}`);
+        return { slug, hasAccess };
     } catch (error: any) {
         console.error('Check course access error:', error);
-        if (error.response?.status === 403) {
-            return false;
-        }
         return rejectWithValue(error.response?.data?.message || 'Ошибка проверки доступа');
     }
 });
 
 export const purchaseCourse = createAsyncThunk<
-    void,
+    { slug: string },
     string,
     { rejectValue: string }
 >('courses/purchaseCourse', async (slug, { rejectWithValue }) => {
     try {
         console.log(`Purchasing course: ${slug}`);
         await apiClient.post(`/v1/courses/${slug}/purchase`);
+        return { slug };
     } catch (error: any) {
         console.error('Purchase course error:', error);
         return rejectWithValue(error.response?.data?.message || 'Не удалось приобрести курс');
@@ -127,6 +149,18 @@ const coursesSlice = createSlice({
                 state.status = 'failed';
                 state.error = action.payload || 'Не удалось загрузить курсы';
             })
+            .addCase(fetchPurchasedCourses.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(fetchPurchasedCourses.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.purchasedCourses = action.payload;
+            })
+            .addCase(fetchPurchasedCourses.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload || 'Не удалось загрузить купленные курсы';
+            })
             .addCase(fetchCourseContent.pending, (state) => {
                 state.status = 'loading';
                 state.error = null;
@@ -139,29 +173,36 @@ const coursesSlice = createSlice({
                 state.status = 'failed';
                 state.error = action.payload || 'Не удалось загрузить содержимое курса';
             })
-            .addCase(checkCourseAccess.pending, (state) => {
-                state.accessStatus = 'checking';
-                state.accessError = null;
+            .addCase(checkCourseAccess.pending, (state, action) => {
+                state.accessStatus[action.meta.arg] = 'checking';
+                state.accessError[action.meta.arg] = null;
             })
             .addCase(checkCourseAccess.fulfilled, (state, action) => {
-                state.accessStatus = action.payload ? 'accessible' : 'inaccessible';
-                state.accessError = null;
+                const { slug, hasAccess } = action.payload;
+                state.accessStatus[slug] = hasAccess ? 'accessible' : 'inaccessible';
+                state.accessError[slug] = null;
             })
             .addCase(checkCourseAccess.rejected, (state, action) => {
-                state.accessStatus = 'inaccessible';
-                state.accessError = action.payload || 'Ошибка проверки доступа';
+                const slug = action.meta.arg;
+                state.accessStatus[slug] = 'inaccessible';
+                state.accessError[slug] = action.payload || 'Ошибка проверки доступа';
             })
-            .addCase(purchaseCourse.pending, (state) => {
+            .addCase(purchaseCourse.pending, (state, action) => {
                 state.status = 'loading';
                 state.error = null;
+                state.accessStatus[action.meta.arg] = 'checking';
+                state.accessError[action.meta.arg] = null;
             })
-            .addCase(purchaseCourse.fulfilled, (state) => {
+            .addCase(purchaseCourse.fulfilled, (state, action) => {
                 state.status = 'succeeded';
-                state.accessStatus = 'accessible';
+                state.accessStatus[action.payload.slug] = 'accessible';
+                state.accessError[action.payload.slug] = null;
             })
             .addCase(purchaseCourse.rejected, (state, action) => {
                 state.status = 'failed';
                 state.error = action.payload || 'Не удалось приобрести курс';
+                state.accessStatus[action.meta.arg] = 'inaccessible';
+                state.accessError[action.meta.arg] = action.payload || 'Не удалось приобрести курс';
             });
     },
 });
@@ -169,10 +210,11 @@ const coursesSlice = createSlice({
 export const { resetCourseContent } = coursesSlice.actions;
 
 export const selectCourses = (state: RootState) => state.courses.courses;
+export const selectPurchasedCourses = (state: RootState) => state.courses.purchasedCourses;
 export const selectCoursesStatus = (state: RootState) => state.courses.status;
 export const selectCoursesError = (state: RootState) => state.courses.error;
 export const selectCurrentCourse = (state: RootState) => state.courses.currentCourse;
-export const selectAccessStatus = (state: RootState) => state.courses.accessStatus;
-export const selectAccessError = (state: RootState) => state.courses.accessError;
+export const selectAccessStatus = (state: RootState, slug: string) => state.courses.accessStatus[slug] || 'idle';
+export const selectAccessError = (state: RootState, slug: string) => state.courses.accessError[slug];
 
 export default coursesSlice.reducer;

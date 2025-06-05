@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { login, register, updateProfile, confirmEmail, forgotPassword, confirmPassword } from '../../api';
+import { RootState } from '../store';
 
 interface LoginData {
     email: string;
@@ -46,7 +47,7 @@ interface AuthState {
     accessToken: string | null;
     refreshToken: string | null;
     loading: boolean;
-    error: string | null;
+    error: string | null | any;
 }
 
 const LOCAL_STORAGE_USER_KEY = 'authUser';
@@ -86,30 +87,31 @@ export const loginUser = createAsyncThunk<
 export const registerUser = createAsyncThunk<
     { username: string; email: string },
     RegisterData,
-    { rejectValue: string }
+    { rejectValue: any }
 >('auth/register', async (data, { rejectWithValue }) => {
     try {
         const result = await register(data);
         return result;
     } catch (error: any) {
-        return rejectWithValue(error.message);
+        return rejectWithValue(error);
     }
 });
 
 export const updateUserProfile = createAsyncThunk<
     AuthState['user'] & { accessToken: string },
     UpdateProfileData,
-    { rejectValue: string }
->('auth/updateProfile', async (data, { rejectWithValue }) => {
+    { rejectValue: string; state: RootState }
+>('auth/updateProfile', async (data, { rejectWithValue, getState }) => {
     try {
         const result = await updateProfile(data);
+        const currentUser = getState().auth.user;
         return {
             firstName: result.firstName,
             lastName: result.lastName,
             middleName: result.middleName,
             login: result.login,
-            email: '',
-            role: '',
+            email: currentUser?.email || '',
+            role: currentUser?.role || '',
             accessToken: result.accessToken,
         };
     } catch (error: any) {
@@ -215,7 +217,7 @@ const authSlice = createSlice({
             })
             .addCase(updateUserProfile.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload || 'Ошибка при обновлении профиля';
+                state.error = action.payload ;
             })
             .addCase(confirmUserEmail.pending, (state) => {
                 state.loading = true;

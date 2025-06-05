@@ -1,7 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { refreshToken } from './authService';
 
-// Расширяем тип InternalAxiosRequestConfig, добавляя свойство _retry
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
     _retry?: boolean;
 }
@@ -46,6 +45,9 @@ apiClient.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError) => {
         const originalRequest = error.config as CustomAxiosRequestConfig;
+        if (originalRequest.url === '/v1/user/login' && error.response?.status === 401) {
+            return Promise.reject(error);
+        }
         if (error.response?.status === 401 && !originalRequest._retry) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
@@ -66,7 +68,7 @@ apiClient.interceptors.response.use(
             try {
                 const refreshTokenStored = localStorage.getItem('refreshToken');
                 if (!refreshTokenStored) {
-                    throw new Error('No refresh token available');
+                    throw new Error('Нет refresh-токена');
                 }
                 const { accessToken, refreshToken: newRefreshToken } = await refreshToken({
                     refreshToken: refreshTokenStored,
