@@ -22,7 +22,7 @@ export const Profile: React.FC = () => {
         const { id, value } = e.target;
         setFormData({ ...formData, [id]: value });
         if (id === 'login') {
-            setLoginError(null); // Сбрасываем ошибку при изменении логина
+            setLoginError(null);
         }
     };
 
@@ -72,14 +72,16 @@ export const Profile: React.FC = () => {
                             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                         </svg>
                     </div>
-                    <h1 className="mt-3 text-2xl font-extrabold text-gray-800 text-center lg:text-left tracking-tight">
-                        {formData.firstName} {formData.lastName}
-                    </h1>
-                    {user.role !== 'User' && (
-                        <p className="mt-1 text-base text-gray-800 font-semibold bg-gradient-to-r from-[#4A90E2] to-[#63B3ED] bg-clip-text text-transparent text-center lg:text-left">
-                            {user.role}
-                        </p>
-                    )}
+                    <div className="max-w-[200px] overflow-hidden">
+                        <h1 className="mt-3 text-2xl font-extrabold text-gray-800 text-center lg:text-left break-words">
+                            {user.firstName} {user.lastName}
+                        </h1>
+                        {user.role !== 'User' && (
+                            <p className="mt-1 text-base text-gray-800 font-semibold bg-gradient-to-r from-[#4A90E2] to-[#63B3ED] bg-clip-text text-transparent text-center lg:text-left break-words">
+                                {user.role}
+                            </p>
+                        )}
+                    </div>
                 </div>
                 <div className="flex-1 w-full">
                     <form onSubmit={handleSubmit} className="space-y-3">

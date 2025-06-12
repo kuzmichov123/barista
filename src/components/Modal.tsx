@@ -8,17 +8,19 @@ interface ModalProps {
     onConfirm?: () => void;
     confirmText?: string;
     showCancel?: boolean;
+    isLoading?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
-                                                isOpen,
-                                                onClose,
-                                                title,
-                                                message,
-                                                onConfirm,
-                                                confirmText = 'ОК',
-                                                showCancel = false,
-                                            }) => {
+    isOpen,
+    onClose,
+    title,
+    message,
+    onConfirm,
+    confirmText = 'ОК',
+    showCancel = false,
+    isLoading = false,
+}) => {
     if (!isOpen) return null;
 
     return (
@@ -39,15 +41,20 @@ export const Modal: React.FC<ModalProps> = ({
                         <button
                             onClick={onClose}
                             className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
+                            disabled={isLoading}
                         >
                             Отмена
                         </button>
                     )}
                     <button
                         onClick={onConfirm || onClose}
-                        className="px-4 py-2 bg-[#7B5B30] text-white rounded hover:bg-[#5A3F32] transition"
+                        className="px-4 py-2 bg-[#7B5B30] text-white rounded hover:bg-[#5A3F32] transition flex items-center"
+                        disabled={isLoading}
                     >
-                        {confirmText}
+                        {isLoading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-white mr-2"></div>
+                        ) : null}
+                        {isLoading ? 'Обработка...' : confirmText}
                     </button>
                 </div>
             </div>

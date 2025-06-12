@@ -85,11 +85,11 @@ export const fetchCourseContent = createAsyncThunk<
     try {
         console.log(`Fetching course content for slug: ${slug}`);
         const response = await apiClient.get(`/v1/courses/${slug}/content`);
-        return response.data;
-    } catch (error: any) {
-        console.error('Fetch course content error:', error);
-        return rejectWithValue(error.response?.data?.message || 'Не удалось загрузить содержимое курса');
-    }
+return response.data;
+} catch (error: any) {
+    console.error('Fetch course content error:', error);
+    return rejectWithValue(error.response?.data?.message || 'Не удалось загрузить содержимое курса');
+}
 });
 
 export const checkCourseAccess = createAsyncThunk<
@@ -114,10 +114,16 @@ export const purchaseCourse = createAsyncThunk<
     { slug: string },
     string,
     { rejectValue: string }
->('courses/purchaseCourse', async (slug, { rejectWithValue }) => {
+>('courses/purchaseCourse', async (slug, { rejectWithValue, dispatch, getState }) => {
     try {
         console.log(`Purchasing course: ${slug}`);
         await apiClient.post(`/v1/courses/${slug}/purchase`);
+        const state = getState() as RootState;
+        const courseToPurchase = state.courses.courses.find(c => c.slug === slug);
+        if (courseToPurchase) {
+            dispatch(coursesSlice.actions.addPurchasedCourse(courseToPurchase));
+        }
+        await dispatch(fetchPurchasedCourses()).unwrap();
         return { slug };
     } catch (error: any) {
         console.error('Purchase course error:', error);
@@ -133,6 +139,12 @@ const coursesSlice = createSlice({
             state.currentCourse = null;
             state.status = 'idle';
             state.error = null;
+        },
+        addPurchasedCourse(state, action: { payload: Course }) {
+            const course = action.payload;
+            if (!state.purchasedCourses.some(c => c.slug === course.slug)) {
+                state.purchasedCourses.push(course);
+            }
         },
     },
     extraReducers: (builder) => {
@@ -207,7 +219,7 @@ const coursesSlice = createSlice({
     },
 });
 
-export const { resetCourseContent } = coursesSlice.actions;
+export const { resetCourseContent, addPurchasedCourse } = coursesSlice.actions;
 
 export const selectCourses = (state: RootState) => state.courses.courses;
 export const selectPurchasedCourses = (state: RootState) => state.courses.purchasedCourses;
